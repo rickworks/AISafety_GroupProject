@@ -1,9 +1,7 @@
 # AISafety_GroupProject
 For dumping useful bits of code for the Cambridge Engineering Safe AI seminar group project
 
-To install the stuff you need on ubuntu:
-* require ubuntu 16.04 or later
-* require Python3.6 or later
+If you happen to be running on ubuntu 16.04 or later, here is how to install the stuff you need (requires python >= 3.5):
 ```
 python -m venv gym_env
 source gym_env/bin/activate
@@ -15,4 +13,6 @@ sudo apt install unrar
 unrar e Roms.rar
 python -m retro.import
 ```
-Get in touch if this doesn't work, or if you're not on ubuntu.
+Get in touch if this doesn't work.
+
+If you're running on something else, and struggle to find the equivilant commands, get in touch and I can help out.
