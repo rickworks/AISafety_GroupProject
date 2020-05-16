@@ -14,16 +14,16 @@ def train_save_baseline():
     model = learn('cnn_small',
                   DummyVecEnv([lambda: env]),
                   total_timesteps=int(80e6))
-    model.save(save_path=cache_path)
+    model.save(save_path = cache_path)
 ##
 
 
 def load_baseline():
     env = get_env()
     model = learn('cnn_small',
-                        DummyVecEnv([lambda: env]),
-                        total_timesteps=0)
-    model.load(load_path=cache_path)
+                  DummyVecEnv([lambda: env]),
+                  total_timesteps=0)
+    model.load(load_path = cache_path)
     env.close()
     return model
 ##
