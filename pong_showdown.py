@@ -4,7 +4,7 @@ Script to run Pong-Atari2600 between two agents.
 
 Also has a couple of baseline agents for illustration, a random agent and an OpenAI baseline agent.
 
-player1/2 must define class Agent with attribute .showdown_step():
+<player1/2> must define class Agent with attribute .showdown_step():
    showdown_step(state = Pong-Atari2600 observation,
                  reward = scalar float)
    returns action = Pong-Atari2600 action, which is a 
@@ -15,6 +15,7 @@ player1/2 must define class Agent with attribute .showdown_step():
 import retro
 import time
 import numpy as np
+from copy import deepcopy
 
 from openai_baseline import load_baseline
 
@@ -23,29 +24,31 @@ from openai_baseline import load_baseline
 
 def main():
 
-    #player1 = player1.Agent()
-    #player2 = player2.Agent()
+    #player1 = <player1>.Agent()
+    #player2 = <player2>.Agent()
 
-    player1 = RandomBaselineAgent()
-    player2 = TrainedBaselineAgent()
+    player1 = TrainedBaselineAgent()
+    player2 = RandomBaselineAgent()
 
     # setting up enviroment
     env = retro.make(game='Pong-Atari2600', players=2)
-    state = env.reset()
+    observation = env.reset()
     done= False
     reward_player1, reward_player2 = ( 0, 0 )
 
     # game loop
     while not done:
 
-        action_player1 = player1.showdown_step(state,
+        action_player1 = player1.showdown_step(observation,
                                                reward_player1)
-        action_player2 = player2.showdown_step(mirror_state(state),
+        action_player2 = player2.showdown_step(mirror_observation(observation),
                                                reward_player2)
-        
-        state, reward, done, info = env.step(
+
+        from human_simulator import parse_pong_state
+        observation, reward, done, info = env.step(
             np.concatenate((action_player1,action_player2))
         )
+        
         reward_player1, reward_player2 = tuple(reward)
 
         env.render()
@@ -58,13 +61,36 @@ def main():
 ##
 
 
-def mirror_state(state):
+def mirror_observation(observation):
     """ 
-    flip state on x-axis and swap colour of bats,
+    flip observation on x-axis and swap colour of bats,
     to make player2 feel like they're player1.
     """
-    # TODO: implement this
-    return state
+    observation = deepcopy(observation)
+
+    # flipping x-axis (the enviroment is not quite symmetric
+    # so leave last column alone)
+    x_extent = observation.shape[1]
+    x_reflect_almost = lambda x: ( x if x==x_extent-1 else
+                                   x_extent-1 - x )
+
+    obs_copy = deepcopy(observation)
+    for x in range(x_extent):
+        observation[:,x,:] = obs_copy[:,x_reflect_almost(x),:]
+
+    # swap colours of bats
+    left_bat_colour = [92,186,92]
+    right_bat_colour = [213,130,74]
+
+    left_bat_pixel_coords = np.where(
+        ( observation == left_bat_colour ).all(axis=2) )
+    right_bat_pixel_coords = np.where(
+        ( observation == right_bat_colour ).all(axis=2) )
+
+    observation[ left_bat_pixel_coords ] = right_bat_colour
+    observation[ right_bat_pixel_coords ] = left_bat_colour
+    
+    return observation
 ##
 
             
@@ -72,11 +98,11 @@ class RandomBaselineAgent:
     """ an agent to play pong that always just does random actions """
     
     def showdown_step(self,
-                      state,
+                      observation,
                       reward):
         """
         args: 
-        state = matrix of pixels from pong
+        observation = matrix of pixels from pong
         reward = float
         returns:
         action = binary array of length 8
@@ -93,9 +119,9 @@ class TrainedBaselineAgent:
     ##
 
     def showdown_step(self,
-                      state,
+                      observation,
                       reward):
-        actions, values, states, _ = self.model.step(state)
+        actions, values, observation, _ = self.model.step(observation)
         return actions[0]
     ##
             

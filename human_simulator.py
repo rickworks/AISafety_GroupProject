@@ -11,7 +11,7 @@ def parse_pong_state(state):
     """
     # cutting off top and bottom panels
     state = state[34:194,:,:]
-        
+
     # removing colour
     monochrome_state = np.sum(state,axis=2)
 
@@ -23,13 +23,13 @@ def parse_pong_state(state):
 
     coord_from_shade = lambda shade: np.mean(
         np.argwhere(monochrome_state==shade),
-        axis=0
-    )
+        axis=0 
+    ) + np.array([34,0])
 
     return { 'left_bat_height' : \
-             coord_from_shade( left_bat_shade )[0],
+             coord_from_shade( left_bat_shade ),
              'right_bat_height' : \
-             coord_from_shade( right_bat_shade )[0],
+             coord_from_shade( right_bat_shade ),
              'ball_coord' : \
              coord_from_shade( ball_shade )
     }
