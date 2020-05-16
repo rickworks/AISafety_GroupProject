@@ -18,6 +18,7 @@ from copy import deepcopy
 import numpy as np
 import retro
 
+from utils import mirror_observation
 from openai_baseline import load_baseline
 
 #import <player1>
@@ -59,39 +60,6 @@ def main():
             obs = env.reset()
             env.close()
             print('Final score: '+str(info))
-##
-
-
-def mirror_observation(observation):
-    """
-    flip observation on x-axis and swap colour of bats,
-    to make player2 feel like they're player1.
-    """
-    observation = deepcopy(observation)
-
-    # flipping x-axis (the enviroment is not quite symmetric
-    # so leave last column alone)
-    x_extent = observation.shape[1]
-    x_reflect_almost = lambda x: (x if x == x_extent-1 else
-                                  x_extent-1 - x)
-
-    obs_copy = deepcopy(observation)
-    for x in range(x_extent):
-        observation[:, x, :] = obs_copy[:, x_reflect_almost(x), :]
-
-    # swap colours of bats
-    left_bat_colour = [92, 186, 92]
-    right_bat_colour = [213, 130, 74]
-
-    left_bat_pixel_coords = np.where(
-        (observation == left_bat_colour).all(axis=2))
-    right_bat_pixel_coords = np.where(
-        (observation == right_bat_colour).all(axis=2))
-
-    observation[left_bat_pixel_coords] = right_bat_colour
-    observation[right_bat_pixel_coords] = left_bat_colour
-
-    return observation
 ##
 
 
