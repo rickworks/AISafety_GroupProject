@@ -32,7 +32,7 @@ def calc_prob_o1_greater_o2(rewardPredictor, tragetory1, tragetory2):
 ##
 
 def build_pong_cnn_model():
-    inp = tf.keras.Input(shape=(160,210,3), batch_size=1)
+    inp = tf.keras.Input(shape=(210,160,3), batch_size=1)
     x = tf.keras.layers.Conv2D(16, (7,7), 3, activation='relu')(inp)
     x = tf.keras.layers.Conv2D(16, (5,5), 2, activation='relu')(x)
     x = tf.keras.layers.Conv2D(16, (3,3), 1, activation='relu')(x)
@@ -44,7 +44,7 @@ def build_pong_cnn_model():
 
 def build_pong_r_estimate_model(batch_size=1):
     observation_model = build_pong_cnn_model()
-    action_input = tf.keras.Input(1, batch_size)
+    action_input = tf.keras.Input(8, batch_size)
 
     # Need to experiment here. These layers are going to decide
     # how observation and action interact, so probably need to
@@ -136,8 +136,8 @@ class TragetoriesSequence:
     ##
 
     def _convertToTrainingForm(self, tragetory):
-        actions = np.concatenate([f[1] for f in tragetory], 1)
-        tragetory = np.concatenate([f[0] for f in tragetory], 1)
+        actions = np.concatenate([np.reshape(f[1], [1,1] + list(f[1].shape)) for f in tragetory], 1)
+        tragetory = np.concatenate([np.reshape(f[0],[1,1] + list(f[0].shape))  for f in tragetory], 1)
         return [tragetory, actions]
     ##
 
@@ -166,30 +166,15 @@ def fit_r_model(r_model, comparisons, tragetory_size):
 
 def main():
     # Experiment just to prove this works
-    filename = "tragetories/1.pkl"
-    with open(filename, 'rb') as input:
-        tragetory = pickle.load(input)
-    ##
-    tragetory_size = len(tragetory)
-    tragetory = [np.reshape(f, [1, 1, 160, 210, 3]) for f in tragetory]
-    tragetory = np.concatenate(tragetory, axis=1)
 
-    actions = np.zeros([1, tragetory.shape[1], 1])
+    comparisons = [[0, 1, "1>2"]]
+    tragetorySequence = TragetoriesSequence(comparisons)
 
-    # out = atari_cnn_model.predict(np.reshape(tragetory[0], [1, 160, 210, 3]))
-    r_model = build_pong_r_estimate_model()
-    # out = r_model.predict([frame, action])
-
-    # inp = tf.keras.Input(atari_cnn_model.inputs[0].shape.as_list(), batch_size=1)
-    # td_layer = tf.keras.layers.TimeDistributed(atari_cnn_model)(inp)
-    # p_model = tf.keras.Model(inp, td_layer)
-    # out = p_model.predict(tragetory)
-
-    # sum_of_r_model = build_sum_of_r_model(r_model, tragetory_size)
-    # out = sum_of_r_model.predict([tragetory, actions])
-
+    tragetory_size = 120
     p_model = build_p_model(r_model, tragetory_size)
-    out = p_model.predict([tragetory, actions, tragetory, actions])
+
+    (inputs, target) = tragetorySequence.__getitem__(0)
+    out = p_model.predict(inputs)
     print(out)
 ##
 

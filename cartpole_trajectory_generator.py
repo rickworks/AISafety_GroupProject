@@ -35,7 +35,7 @@ class CartpoleTragetoryGenerator:
                 observation, reward, done, info = self._env.step(action)
             ##
 
-            out.append(self._env.render(mode='rgb_array')[::2,::2,:])
+            out.append([self._env.render(mode='rgb_array')[::2,::2,:], action])
         ##
         self._env.close()
         return out

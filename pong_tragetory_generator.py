@@ -39,7 +39,7 @@ class PongTragetoryGenerator:
                 reward_player1, reward_player2 = tuple(reward)
             ##
 
-            out.append(observation)
+            out.append([observation, action_player1])
         ##
         return out
     #
