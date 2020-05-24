@@ -3,6 +3,7 @@ import math
 import numpy as np
 import tensorflow as tf
 import pickle
+import os
 
 
 class DummyRewardPredictor:
@@ -111,6 +112,56 @@ def build_p_model(r_model, tragetory_size):
     exp_sum_of_r_2 = tf.math.exp(sum_of_r_model([o_inp_2, a_inp_2]))
     p = tf.math.divide(exp_sum_of_r_1, tf.math.add(exp_sum_of_r_1, exp_sum_of_r_2))
     return tf.keras.Model([o_inp_1, a_inp_1, o_inp_2, a_inp_2], p)
+##
+
+class TragetoriesSequence:
+    def __init__(self, comparisons):
+        self._comparisons = comparisons
+    ##
+
+    def __len__(self):
+        return len(self._comparisons)
+    ##
+
+    def __getitem__(self, idx):
+        item = self._comparisons[idx]
+        tragetory1 = self._loadTragetory(item[0])
+        tragetory2 = self._loadTragetory(item[1])
+        humanChoice = int(item[2] == "1>0")
+
+        tragetory1 = self._convertToTrainingForm(tragetory1)
+        tragetory2 = self._convertToTrainingForm(tragetory2)
+
+        return (tragetory1+tragetory2, humanChoice)
+    ##
+
+    def _convertToTrainingForm(self, tragetory):
+        actions = np.concatenate([f[1] for f in tragetory], 1)
+        tragetory = np.concatenate([f[0] for f in tragetory], 1)
+        return [tragetory, actions]
+    ##
+
+    def _loadTragetory(self, idx):
+        # Load tragetory of given index
+        filename = self._getTragetoryFilename(idx)
+        with open(filename, 'rb') as input:
+            return pickle.load(input)
+        ##
+    ##
+
+    def _getTragetoryFilename(self, idx):
+        # Get the filename for a given tragetory
+        if not os.path.exists("tragetories"):
+            os.mkdir("tragetories")
+        ##
+        return "tragetories/" + str(idx) + ".pkl"
+    #
+##
+
+def fit_r_model(r_model, comparisons, tragetory_size):
+    p_model = build_p_model(r_model, tragetory_size)
+    data = TragetoriesSequence(comparisons)
+    p_model.fit(data)
 ##
 
 def main():
