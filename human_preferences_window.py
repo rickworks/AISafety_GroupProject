@@ -4,7 +4,7 @@ import PIL.Image, PIL.ImageTk
 class HumanPreferenceWindow():
     """ Window for performing comparisons between two videos about which is better than the other """
 
-    def __init__(self, master, videoWidth = 160, videoHeight = 192, zoom = 2):
+    def __init__(self, master, videoWidth = 160, videoHeight = 192, zoom = 2, cartpole=False):
         self._master = master
         self._master.resizable(False, False)
         self._zoom = zoom
@@ -15,6 +15,11 @@ class HumanPreferenceWindow():
         self._frame2 = []
         self._frameIndex = 0
         self._callback = []
+
+        if cartpole:
+            videoWidth=300
+            videoHeight=200
+            zoom=2
 
         self._canvas1 = tk.Canvas(self._master, width = videoWidth * zoom, height = videoHeight * zoom, borderwidth = 2, relief="groove")
         self._canvas1.grid(row=0, column=0)
