@@ -30,7 +30,7 @@ def calc_prob_o1_greater_o2(rewardPredictor, tragetory1, tragetory2):
     return math.exp(rSum1) / (math.exp(rSum1) + math.exp(rSum2))
 ##
 
-def build_atari_cnn_model():
+def build_pong_cnn_model():
     inp = tf.keras.Input(shape=(160,210,3), batch_size=1)
     x = tf.keras.layers.Conv2D(16, (7,7), 3, activation='relu')(inp)
     x = tf.keras.layers.Conv2D(16, (5,5), 2, activation='relu')(x)
@@ -41,17 +41,32 @@ def build_atari_cnn_model():
     return tf.keras.Model(inp, x)
 #
 
-def build_r_estimate_model(observation_model, action_shape, batch_size=1):
-    actionInput = tf.keras.Input(action_shape, batch_size)
+def build_pong_r_estimate_model(batch_size=1):
+    observation_model = build_pong_cnn_model()
+    action_input = tf.keras.Input(1, batch_size)
 
     # Need to experiment here. These layers are going to decide
     # how observation and action interact, so probably need to
     # be tuned per example.
-    x = tf.keras.layers.concatenate([observation_model.outputs[0], actionInput], axis=1)
+    x = tf.keras.layers.concatenate([observation_model.outputs[0], action_input], axis=1)
     x = tf.keras.layers.Dense(32, activation='relu')(x)
     x = tf.keras.layers.Dense(1)(x)
 
-    return tf.keras.Model([observation_model.inputs, actionInput], x)
+    return tf.keras.Model([observation_model.inputs, action_input], x)
+##
+
+def build_cartpole_r_estimate_model(batch_size=1):
+    observation_input = tf.keras.Input(shape=(4,1), batch_size=1)
+    action_input = tf.keras.Input(1, batch_size)
+
+    # Need to experiment here. These layers are going to decide
+    # how observation and action interact, so probably need to
+    # be tuned per example.
+    x = tf.keras.layers.concatenate([observation_input, action_input], axis=1)
+    x = tf.keras.layers.Dense(16, activation='relu')(x)
+    x = tf.keras.layers.Dense(1)(x)
+
+    return tf.keras.Model([observation_input, action_input], x)
 ##
 
 def build_sum_of_r_model(r_model, tragetory_size):
@@ -110,9 +125,8 @@ def main():
 
     actions = np.zeros([1, tragetory.shape[1], 1])
 
-    atari_cnn_model = build_atari_cnn_model()
     # out = atari_cnn_model.predict(np.reshape(tragetory[0], [1, 160, 210, 3]))
-    r_model = build_r_estimate_model(atari_cnn_model, 1)
+    r_model = build_pong_r_estimate_model()
     # out = r_model.predict([frame, action])
 
     # inp = tf.keras.Input(atari_cnn_model.inputs[0].shape.as_list(), batch_size=1)
@@ -130,5 +144,5 @@ def main():
 
 
 if __name__ == "__main__":
-    app = main()
+    main()
 ##
