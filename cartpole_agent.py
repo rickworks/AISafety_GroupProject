@@ -137,7 +137,7 @@ class Agent:
                 state = next_state
                 episode_reward += reward
                 
-                if render and episode > int(n_episodes*3/4):
+                if render and episode > n_episodes - 10:
                     self.env.render()
                     time.sleep(0.02)
                     
@@ -165,7 +165,7 @@ if __name__=='__main__':
 
     agent = Agent(env)
 
-    episode_rewards = agent.train(300)
+    episode_rewards = agent.train(250,render=True)
 
     import matplotlib.pyplot as plt
     plt.plot(episode_rewards)
