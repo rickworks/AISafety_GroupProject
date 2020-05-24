@@ -171,6 +171,7 @@ def main():
     tragetorySequence = TragetoriesSequence(comparisons)
 
     tragetory_size = 120
+    r_model = build_pong_r_estimate_model()
     p_model = build_p_model(r_model, tragetory_size)
 
     (inputs, target) = tragetorySequence.__getitem__(0)
