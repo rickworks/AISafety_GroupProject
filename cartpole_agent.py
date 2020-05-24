@@ -13,13 +13,15 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 
 class Agent:
-    def __init__(self, env, path=None):
+    def __init__(self, env, reward_predictor=None, path=None):
         self.env=env
         self.state_shape=env.observation_space.shape
         self.action_shape=env.action_space.n
         self.gamma=0.99
         self.alpha=1e-4
         self.learning_rate=0.01
+
+        self.reward_predictor = reward_predictor
 
         if not path:
             self.model=self._build_model()
@@ -132,6 +134,10 @@ class Agent:
             while not done:
                 action, prob=self.get_action(state)
                 next_state, reward, done, _ = self.env.step(action)
+
+                if self.reward_predictor not None:
+                    reward = self.reward_predictor.predict(action,
+                                                           state)
 
                 self.remember(state, action, prob, reward)
                 state = next_state
